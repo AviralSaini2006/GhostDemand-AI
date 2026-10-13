@@ -1,0 +1,13 @@
+{
+  "yourhotel.com": {
+    "adr": 180,
+    "nights": 2,
+    "steps": {
+      "search": "/search|/availability|/rooms",
+      "room": "/room|/suite|/rate",
+      "details": "/guest|/details|/checkout",
+      "payment": "/pay",
+      "confirmed": "/confirm|/thank|/success"
+    }
+  }
+}

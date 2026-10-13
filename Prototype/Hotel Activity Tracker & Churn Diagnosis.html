@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hotel Activity Tracker</title>
+<style>
+:root{--bg:#f6f4ef;--card:#fff;--tx:#1d2733;--mu:#6b7683;--ac:#0f6b5c;--bd:#e3ded3;--bad:#c2410c;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14181d;--card:#1d242b;--tx:#e8ecef;--mu:#98a3ae;--ac:#3fb8a0;--bd:#2c353d;--bad:#fb923c}}
+:root[data-theme="dark"]{--bg:#14181d;--card:#1d242b;--tx:#e8ecef;--mu:#98a3ae;--ac:#3fb8a0;--bd:#2c353d;--bad:#fb923c}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif}
+.w{max-width:900px;margin:0 auto;padding:16px}
+nav{display:flex;gap:8px;margin-bottom:16px}
+button,.b{font:inherit;border:1px solid var(--bd);background:var(--card);color:var(--tx);padding:8px 14px;border-radius:8px;cursor:pointer}
+button.p,nav button.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.c{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}
+h1,h2,h3{margin:0 0 8px}h1{font-size:22px}h2{font-size:18px}h3{font-size:15px}
+.mu{color:var(--mu);font-size:13px}
+input,select{font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);width:100%;margin:4px 0 10px}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.k{font-size:24px;font-weight:700}
+.hero{background:linear-gradient(135deg,#0f6b5c,#1f3b5c);color:#fff;border-radius:12px;padding:28px 18px;margin-bottom:12px}
+.room{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.bar{height:22px;background:var(--bd);border-radius:6px;overflow:hidden;margin:2px 0 8px}
+.bar i{display:block;height:100%;background:var(--ac)}
+.bar.r i{background:var(--bad)}
+.err{color:var(--bad);font-size:13px;min-height:18px}
+.tag{display:inline-block;background:var(--bad);color:#fff;border-radius:6px;padding:1px 8px;font-size:12px}
+.scroll{overflow-x:auto}
+</style></head><body><div class="w">
+<nav><button id="n0" class="on">🏨 Hotel site (live tracked)</button><button id="n1">📊 Analytics &amp; diagnosis</button></nav>
+<div id="v0"><div class="hero"><h1>Seaview Grand Hotel (demo)</h1><div class="mu" style="color:#d5e4e0">Use this site like a guest. Every click, scroll, error and exit is tracked.</div></div><div id="hotel"></div></div>
+<div id="v1" hidden></div>
+</div>
+<script>
+const S=['Landing','Search','Room','Details','Payment','Confirmed'];
+let events=[],meta={},cur=null,sc=0,clicks=[];
+const $=id=>document.getElementById(id);
+function save(){try{localStorage.setItem('ht',JSON.stringify({events,meta}))}catch(e){}}
+try{const o=JSON.parse(localStorage.getItem('ht')||'null');if(o){events=o.events;meta=o.meta}}catch(e){}
+function ev(id,t,step,d){events.push({id,t,step,d:d||{}})}
+function track(t,step,d){ev(cur,t,step,d);save()}
+function newSession(){
+  cur='live'+Date.now();
+  const src=new URLSearchParams(location.search).get('src')||['Google','Instagram','Direct','Booking.com'][Math.floor(Math.random()*4)];
+  meta[cur]={device:innerWidth<768?'mobile':'desktop',source:src,load:+(performance.now()/1000+(innerWidth<768?2:0.5)).toFixed(1),live:1};
+  step=0;track('step',0);show(0);
+}
+let step=0;
+function leave(){ if(cur&&step<5&&!meta[cur].left){meta[cur].left=1;track('exit',step)} }
+function show(n){
+  step=n;const h=$('hotel');h.innerHTML='';
+  const add=html=>{const d=document.createElement('div');d.className='c';d.innerHTML=html;h.appendChild(d);return d};
+  if(n==0){const d=add('<h2>Find your stay</h2><label>Check-in<input type="date" id="ci"></label><label>Check-out<input type="date" id="co"></label><label>Guests<select id="gu"><option>1</option><option selected>2</option><option>3</option></select></label><button class="p" id="go">Search rooms</button><div class="mu" style="margin-top:12px">Scroll down for amenities, reviews and policies…</div>');
+    add('<h3>Amenities</h3><p class="mu">Pool, spa, rooftop bar, airport shuttle.</p><div style="height:260px"></div><h3>Reviews</h3><p class="mu">4.2★ from 812 guests. “Great view, slow check-in.”</p><div style="height:200px"></div><h3>Policies</h3><p class="mu">Free cancellation up to 48h. Taxes &amp; resort fee added at payment.</p>');
+    $('go').onclick=()=>{track('search',0,{});show(1);track('step',1)}}
+  if(n==1){add('<h2>Available rooms</h2><div class="mu">Prices per night</div>');
+    [['Standard',180],['Deluxe Sea View',240],['Suite',390]].forEach(r=>{const d=add('<div class="room"><div><b>'+r[0]+'</b><div class="mu">$'+r[1]+' / night</div></div><button class="p">Select</button></div>');
+      d.querySelector('button').onclick=()=>{meta[cur].price=r[1];track('room_view',2,{room:r[0]});show(2);track('step',2)}})}
+  if(n==2){add('<h2>Your room</h2><p>2 nights · $'+meta[cur].price+' / night</p><button class="p" id="nx">Continue to guest details</button>');
+    $('nx').onclick=()=>{show(3);track('step',3)}}
+  if(n==3){add('<h2>Guest details</h2><label>Name<input id="nm"></label><label>Email<input id="em"></label><div class="err" id="e1"></div><label>Phone (with country code)<input id="ph"></label><div class="err" id="e2"></div><button class="p" id="nx">Continue to payment</button>');
+    $('nx').onclick=()=>{let ok=1;
+      if(!/^\S+@\S+\.\S+$/.test($('em').value)){ok=0;$('e1').textContent='Enter a valid email';track('form_error',3,{field:'email'})}
+      if(!/^\+\d{8,14}$/.test($('ph').value)){ok=0;$('e2').textContent='Phone must look like +911234567890';track('form_error',3,{field:'phone'})}
+      if(ok){show(4);track('step',4)}}}
+  if(n==4){const p=meta[cur].price*2,tot=Math.round(p*1.22);
+    add('<h2>Payment</h2><p>Room: $'+p+'<br>Taxes + resort fee: <b>$'+(tot-p)+'</b><br><b>Total: $'+tot+'</b></p><label>Card number<input id="cc" placeholder="16 digits"></label><div class="err" id="e3"></div><button class="p" id="pay">Pay now</button> <button id="back">Back</button>');
+    track('price_shock',4,{listed:p,final:tot});
+    $('back').onclick=()=>{track('back',4)};
+    $('pay').onclick=()=>{if(!/^\d{16}$/.test($('cc').value)){$('e3').textContent='Payment failed: invalid card';track('payment_error',4);return}
+      step=5;track('step',5);show(5);step=5}}
+  if(n==5)add('<h2>✅ Booking confirmed!</h2><button class="p" id="re">Start a new visit</button>'),$('re').onclick=()=>newSession();
+}
+// global tracking
+document.addEventListener('click',e=>{if(!cur||$('v0').hidden)return;const t=Date.now(),k=e.target.tagName+(e.target.id||'');
+  clicks=clicks.filter(c=>t-c.t<1000);clicks.push({t,k});
+  if(clicks.filter(c=>c.k==k).length>=3){track('rage_click',step,{el:k});clicks=[]}else save()});
+addEventListener('scroll',()=>{if(!cur||step!=0)return;const d=Math.round(100*(scrollY+innerHeight)/document.body.scrollHeight);if(d>sc){sc=d;if(d%25<4)track('scroll',0,{depth:d})}});
+addEventListener('pagehide',leave);
+// ---------- Analytics ----------
+const rnd=Math.random,pick=a=>a[Math.floor(rnd()*a.length)];
+function simulate(n){
+  for(let i=0;i<n;i++){
+    const id='sim'+Date.now()+i,mob=rnd()<.58,src=pick(['Google','Google','Instagram','Instagram','Direct','Booking.com']),
+      load=mob?3.5+rnd()*4:1+rnd()*1.8,ig=src=='Instagram'?.75:1;
+    meta[id]={device:mob?'mobile':'desktop',source:src,load:+load.toFixed(1)};
+    ev(id,'step',0);
+    if(rnd()<(load>4?.5:.14)){ev(id,'exit',0);continue}
+    ev(id,'scroll',0,{depth:Math.round(20+rnd()*80)});
+    ev(id,'search',0);ev(id,'step',1);
+    if(mob&&rnd()<.12)ev(id,'rage_click',1);
+    if(rnd()>(mob?.62:.74)*ig){ev(id,'exit',1);continue}
+    ev(id,'step',2);if(rnd()>.62*ig){ev(id,'exit',2);continue}
+    ev(id,'step',3);const fe=rnd()<(mob?.35:.14);
+    if(fe)ev(id,'form_error',3,{field:pick(['phone','phone','email'])});
+    if(rnd()>(fe?.55:.86)){ev(id,'exit',3);continue}
+    ev(id,'step',4);ev(id,'price_shock',4,{listed:360,final:439});
+    if(rnd()<.45){ev(id,'exit',4);continue}
+    if(rnd()<(mob?.16:.08)){ev(id,'payment_error',4);if(rnd()<.6){ev(id,'exit',4);continue}}
+    ev(id,'step',5);
+  }save();
+}
+function analyze(){
+  const ids=Object.keys(meta),N=ids.length;if(!N)return null;
+  const by={};ids.forEach(i=>by[i]={m:meta[i],reach:0,t:new Set(),exit:null,ferr:[]});
+  events.forEach(e=>{const s=by[e.id];if(!s)return;s.t.add(e.t);if(e.t=='step')s.reach=Math.max(s.reach,e.step);if(e.t=='exit')s.exit=e.step;if(e.t=='form_error')s.ferr.push(e.d.field)});
+  const L=ids.map(i=>by[i]),conv=l=>l.length?l.filter(s=>s.reach==5).length/l.length:0;
+  const fun=S.map((_,k)=>L.filter(s=>s.reach>=k).length);
+  const mob=L.filter(s=>s.m.device=='mobile'),dsk=L.filter(s=>s.m.device=='desktop');
+  const slow=L.filter(s=>s.m.load>4),fast=L.filter(s=>s.m.load<=4);
+  const bounce=l=>l.length?l.filter(s=>s.reach==0).length/l.length:0;
+  const issues=[],pc=x=>(x*100).toFixed(0)+'%';
+  const lostSlow=slow.length*(bounce(slow)-bounce(fast));
+  if(slow.length>=5&&lostSlow>0)issues.push({n:lostSlow,t:'Slow page load is driving visitors away',e:`${slow.length} visits loaded in over 4s: ${pc(bounce(slow))} bounced vs ${pc(bounce(fast))} on fast loads.`,f:'Compress hero images, lazy-load below the fold, use a CDN and cut third-party scripts. Prioritise mobile.'});
+  const shock=L.filter(s=>s.t.has('price_shock')&&s.reach<5);
+  if(shock.length)issues.push({n:shock.length,t:'Hidden fees shock guests at checkout',e:`${shock.length} guests saw the price jump ~22% (taxes + resort fee) on the payment step and left without booking.`,f:'Show the all-inclusive total on search and room pages, or fold the resort fee into the nightly rate.'});
+  const fe=L.filter(s=>s.ferr.length&&s.reach<5);
+  if(fe.length){const c={};L.forEach(s=>s.ferr.forEach(f=>c[f]=(c[f]||0)+1));const top=Object.entries(c).sort((a,b)=>b[1]-a[1])[0];
+    issues.push({n:fe.length,t:'Booking form is causing errors and abandonment',e:`${fe.length} guests hit form errors and did not finish. Most frequent: "${top[0]}" field (${top[1]} errors).`,f:'Accept any phone format, validate inline as they type, and make non-essential fields optional.'})}
+  const pe=L.filter(s=>s.t.has('payment_error')&&s.reach<5);
+  if(pe.length)issues.push({n:pe.length,t:'Payments are failing',e:`${pe.length} guests got a payment error and never completed.`,f:'Add Apple/Google Pay, retain entered data on failure, show clear error messages and a retry path.'});
+  const gap=conv(dsk)-conv(mob);
+  if(mob.length>=10&&gap>.02)issues.push({n:gap*mob.length,t:'Mobile experience underperforms desktop',e:`Mobile converts ${pc(conv(mob))} vs desktop ${pc(conv(dsk))}, yet mobile is ${pc(mob.length/N)} of traffic.`,f:'Redesign the booking flow for thumbs: sticky CTA, larger tap targets, autofill, fewer steps.'});
+  const rage=L.filter(s=>s.t.has('rage_click')&&s.reach<5);
+  if(rage.length)issues.push({n:rage.length,t:'Guests rage-click on unresponsive elements',e:`${rage.length} lost sessions had rapid repeated clicks, a sign of broken or unclear UI.`,f:'Check buttons and filters on results page for dead zones or slow responses.'});
+  const src={};L.forEach(s=>{const k=s.m.source;(src[k]=src[k]||[]).push(s)});
+  const avg=conv(L);Object.entries(src).forEach(([k,l])=>{if(l.length>=.15*N&&conv(l)<avg*.75)issues.push({n:l.length*(avg-conv(l)),t:`${k} traffic is low-quality or mismatched`,e:`${k} sends ${pc(l.length/N)} of visits but converts ${pc(conv(l))} vs ${pc(avg)} overall.`,f:'Align the ad promise with the landing page, or shift budget to higher-converting channels.'})});
+  issues.sort((a,b)=>b.n-a.n);
+  const exits=S.map((_,k)=>L.filter(s=>s.reach==k&&s.reach<5).length);
+  return{N,conv:avg,bounce:bounce(L),load:L.reduce((a,s)=>a+s.m.load,0)/N,fun,exits,issues,mobc:conv(mob),dskc:conv(dsk)};
+}
+function render(){
+  const A=analyze(),v=$('v1');
+  v.innerHTML='<div class="c"><h2>Activity analytics</h2><div class="mu">Tracks live visits from the hotel tab, or generate realistic traffic to see the diagnosis.</div><div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"><button class="p" id="sm">Simulate 300 visitors</button><button id="cl">Clear data</button></div></div>';
+  if(!A){v.innerHTML+='<div class="c mu">No data yet. Browse the hotel tab or press “Simulate 300 visitors”.</div>';bind();return}
+  const mx=A.fun[0]||1;
+  let h='<div class="g">'+[['Sessions',A.N],['Conversion',(A.conv*100).toFixed(1)+'%'],['Bounce rate',(A.bounce*100).toFixed(0)+'%'],['Avg load',A.load.toFixed(1)+'s']].map(k=>'<div class="c"><div class="mu">'+k[0]+'</div><div class="k">'+k[1]+'</div></div>').join('')+'</div>';
+  h+='<div class="c"><h3>Booking funnel</h3>'+S.map((s,k)=>'<div>'+s+' <span class="mu">'+A.fun[k]+' · '+(100*A.fun[k]/mx).toFixed(0)+'%'+(k<5?' · '+A.exits[k]+' left here':'')+'</span></div><div class="bar"><i style="width:'+100*A.fun[k]/mx+'%"></i></div>').join('')+'</div>';
+  h+='<div class="c"><h3>Why the hotel is losing clients</h3>';
+  if(!A.issues.length)h+='<div class="mu">No significant problems detected yet. Collect more sessions.</div>';
+  const top=A.issues[0]?A.issues[0].n:1;
+  A.issues.forEach((i,k)=>{h+='<div style="margin:12px 0;padding-top:12px;'+(k?'border-top:1px solid var(--bd)':'')+'"><b>'+(k+1)+'. '+i.t+'</b> <span class="tag">~'+Math.round(i.n)+' lost</span><div class="bar r"><i style="width:'+100*i.n/top+'%"></i></div><div class="mu">Evidence: '+i.e+'</div><div>💡 '+i.f+'</div></div>'});
+  h+='<div class="mu">Lost counts are estimates and can overlap between causes.</div></div>';
+  v.insertAdjacentHTML('beforeend',h);bind();
+}
+function bind(){$('sm').onclick=()=>{simulate(300);render()};$('cl').onclick=()=>{events=[];meta={};save();newSession();render()}}
+function tab(i){leave();$('v0').hidden=i;$('v1').hidden=!i;$('n0').className=i?'':'on';$('n1').className=i?'on':'';if(i)render();else if(meta[cur]&&meta[cur].left)newSession()}
+$('n0').onclick=()=>tab(0);$('n1').onclick=()=>tab(1);
+newSession();
+</script></body></html>

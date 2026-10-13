@@ -1,0 +1,21 @@
+{
+  "yourhotel.com": {
+    "adr": 180,
+    "nights": 2,
+    "steps": {
+      "search": "/search|/availability|/rooms",
+      "room": "/room|/suite|/rate",
+      "details": "/guest|/details|/checkout",
+      "payment": "/pay",
+      "confirmed": "/confirm|/thank|/success"
+    }
+  },
+  "newhotel.com": {
+    "adr": 200,
+    "nights": 2
+  },
+  "thepaulbangalore.in": {
+    "adr": 0,
+    "nights": 1
+  }
+}

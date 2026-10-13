@@ -1,0 +1,32 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hotel Tracker</title>
+<style>:root{--bg:#f6f4ef;--c:#fff;--tx:#1d2733;--mu:#6b7683;--ac:#0f6b5c;--bd:#e3ded3;--bad:#c2410c}
+@media(prefers-color-scheme:dark){:root{--bg:#14181d;--c:#1d242b;--tx:#e8ecef;--mu:#98a3ae;--ac:#3fb8a0;--bd:#2c353d;--bad:#fb923c}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,sans-serif}.w{max-width:900px;margin:auto;padding:16px}
+.c{background:var(--c);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}.mu{color:var(--mu);font-size:13px}
+select,input,button{font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}button{background:var(--ac);color:#fff;border-color:var(--ac);cursor:pointer}
+.g{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}.k{font-size:24px;font-weight:700}
+.bar{height:20px;background:var(--bd);border-radius:6px;overflow:hidden;margin:2px 0 8px}.bar i{display:block;height:100%;background:var(--ac)}.r i{background:var(--bad)}
+.tag{background:var(--bad);color:#fff;border-radius:6px;padding:1px 8px;font-size:12px}textarea{width:100%;font:12px monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px}</style></head><body><div class="w">
+<div class="c"><h2 style="margin:0 0 8px">Hotel customer tracker</h2>
+<input id="site" list="sl" placeholder="yourhotel.com"><datalist id="sl"></datalist>
+<select id="days"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option></select>
+<button id="go">Analyze</button>
+<p class="mu">1. Add the hotel's domain to config.json. 2. Paste this snippet before &lt;/body&gt; on every page of the hotel site:</p>
+<textarea id="sn" rows="2" readonly></textarea></div><div id="out"></div></div>
+<script>
+const $=id=>document.getElementById(id),key=new URLSearchParams(location.search).get('key')||'',q=p=>p+(p.includes('?')?'&':'?')+'key='+encodeURIComponent(key);
+function snip(){$('sn').value='<script async src="'+location.origin+'/tracker.js" data-site="'+($('site').value||'yourhotel.com')+'"><\/script>'}
+$('site').oninput=snip;
+fetch(q('/api/sites')).then(r=>r.json()).then(s=>{$('sl').innerHTML=s.map(x=>'<option>'+x+'</option>').join('');if(s[0]){$('site').value=s[0];snip();run()}else snip()});
+$('go').onclick=run;
+async function run(){snip();const A=await (await fetch(q('/api/summary?site='+encodeURIComponent($('site').value)+'&days='+$('days').value))).json(),o=$('out');
+ if(!A.N){o.innerHTML='<div class="c mu">No visits recorded for this site yet. Install the snippet and browse the site, then refresh.</div>';return}
+ const mx=A.fun[0]||1,f=(x,d)=>x==null?'n/a':x.toFixed(d);
+ let h='<div class="g">'+[['Sessions',A.N],['Conversion',(A.conv*100).toFixed(1)+'%'],['Bounce',(A.bounce*100).toFixed(0)+'%'],['Avg load',A.load==null?'n/a':f(A.load,1)+'s']].map(k=>'<div class="c"><div class="mu">'+k[0]+'</div><div class="k">'+k[1]+'</div></div>').join('')+'</div>';
+ A.warn.forEach(w=>h+='<div class="c" style="border-color:var(--bad)">⚠️ '+w+'</div>');
+ h+='<div class="c"><h3>Booking funnel</h3>'+A.names.map((s,k)=>'<div>'+s+' <span class="mu">'+A.fun[k]+' · '+(100*A.fun[k]/mx).toFixed(0)+'%'+(k<5?' · '+A.exits[k]+' left here':'')+'</span></div><div class="bar"><i style="width:'+100*A.fun[k]/mx+'%"></i></div>').join('')+'</div>';
+ h+='<div class="c"><h3>Why the hotel is losing clients</h3>'+(A.issues.length?'':'<div class="mu">No significant problems detected yet. Collect more sessions.</div>');
+ const top=A.issues[0]?A.issues[0].n:1;
+ A.issues.forEach((i,k)=>h+='<div style="margin:12px 0;'+(k?'border-top:1px solid var(--bd);padding-top:12px':'')+'"><b>'+(k+1)+'. '+i.t+'</b> <span class="tag">~'+Math.round(i.n)+' lost</span>'+(A.value?' <span class="mu">≈ $'+Math.round(i.n*.3*A.value).toLocaleString()+' recoverable at 30%</span>':'')+'<div class="bar r"><i style="width:'+100*i.n/top+'%"></i></div><div class="mu">Evidence: '+i.e+'</div><div>💡 '+i.f+'</div></div>');
+ o.innerHTML=h+'<div class="mu">Counts are estimates and may overlap between causes.</div></div>'}
+</script></body></html>

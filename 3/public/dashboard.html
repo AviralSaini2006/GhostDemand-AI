@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Hotel Tracker</title>
+<style>:root{--bg:#f6f4ef;--c:#fff;--tx:#1d2733;--mu:#6b7683;--ac:#0f6b5c;--bd:#e3ded3;--bad:#c2410c;--med:#b7791f;--low:#6b7683}
+@media(prefers-color-scheme:dark){:root{--bg:#14181d;--c:#1d242b;--tx:#e8ecef;--mu:#98a3ae;--ac:#3fb8a0;--bd:#2c353d;--bad:#fb923c;--med:#f6c453}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,sans-serif}.w{max-width:960px;margin:auto;padding:16px}
+.c{background:var(--c);border:1px solid var(--bd);border-radius:12px;padding:16px;margin-bottom:12px}.mu{color:var(--mu);font-size:13px}h2,h3{margin:0 0 8px}
+select,input,button{font:inherit;padding:8px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx)}button{background:var(--ac);color:#fff;border-color:var(--ac);cursor:pointer}button.g{background:var(--c);color:var(--tx);border-color:var(--bd)}
+.tabs{display:flex;gap:8px;margin-bottom:12px}.tabs button.g.on{background:var(--ac);color:#fff;border-color:var(--ac)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.k{font-size:24px;font-weight:700}
+.bar{height:18px;background:var(--bd);border-radius:6px;overflow:hidden;margin:2px 0 8px}.bar i{display:block;height:100%;background:var(--ac)}.r i{background:var(--bad)}
+.tag{color:#fff;border-radius:6px;padding:1px 8px;font-size:12px}.high{background:var(--bad)}.med{background:var(--med)}.low{background:var(--low)}
+textarea{width:100%;font:12px monospace;background:var(--bg);color:var(--tx);border:1px solid var(--bd);border-radius:8px}table{width:100%;border-collapse:collapse;font-size:13px}td,th{text-align:left;padding:4px 6px;border-bottom:1px solid var(--bd)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}.spark{display:flex;align-items:flex-end;gap:3px;height:70px}.spark div{flex:1;background:var(--ac);min-width:4px;border-radius:2px 2px 0 0}</style></head><body><div class="w">
+<h2>Hotel tracker</h2>
+<div class="tabs"><button class="g on" id="t1">Audit any website</button><button class="g" id="t2">Visitor analytics</button></div>
+
+<div id="p1"><div class="c"><b>Audit a real hotel website</b><div class="mu">Works on any public URL, no installation. Checks speed, mobile readiness, booking visibility and price transparency. Query strings like gclid are ignored.</div>
+<div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap"><input id="au" style="flex:1;min-width:220px" placeholder="https://www.tajhotels.com"><button id="ab">Run audit</button></div><div class="mu" id="am"></div></div><div id="ao"></div></div>
+
+<div id="p2" hidden>
+<div class="c"><div style="display:flex;gap:8px;flex-wrap:wrap"><input id="site" list="sl" placeholder="yourhotel.com"><datalist id="sl"></datalist>
+<select id="days"><option value="7">7 days</option><option value="30" selected>30 days</option><option value="90">90 days</option></select><button id="go">Analyze</button><button class="g" id="ex">Export CSV</button></div>
+<p class="mu">Install this snippet before &lt;/body&gt; on every page (or paste it into a Google Tag Manager "Custom HTML" tag). Booking engines on another domain need it too.</p><textarea id="sn" rows="2" readonly></textarea>
+<details style="margin-top:8px"><summary class="mu">Register or edit a site</summary><div style="display:grid;gap:6px;margin-top:6px"><input id="ns" placeholder="Domain, e.g. yourhotel.com"><input id="na" type="number" placeholder="Average nightly rate"><input id="nn" type="number" placeholder="Average nights per stay">
+<input id="ps" placeholder="Optional payment URL pattern, e.g. /pay|/payment"><input id="cs" placeholder="Optional confirmation URL pattern, e.g. /thank|/confirmation"><button id="sv">Save site</button><span class="mu" id="sm"></span></div></details></div>
+<div id="out"></div></div></div>
+<script>
+const $=id=>document.getElementById(id),key=new URLSearchParams(location.search).get('key')||'',q=p=>p+(p.includes('?')?'&':'?')+'key='+encodeURIComponent(key),esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function tab(n){$('p1').hidden=n!=1;$('p2').hidden=n!=2;$('t1').className='g'+(n==1?' on':'');$('t2').className='g'+(n==2?' on':'')}
+$('t1').onclick=()=>tab(1);$('t2').onclick=()=>tab(2);
+$('ab').onclick=async()=>{const u=$('au').value.trim().split('?')[0];if(!u){$('am').textContent='Enter a website URL';return}
+ $('am').textContent='Fetching the page and running Google PageSpeed. This can take up to a minute…';$('ao').innerHTML='';
+ const A=await (await fetch(q('/api/audit?url='+encodeURIComponent(u)))).json();$('am').textContent='';
+ if(A.error){$('ao').innerHTML='<div class="c" style="border-color:var(--bad)">Could not audit this site: '+esc(A.error)+'</div>';return}
+ const P=A.psi||{};let h='<div class="grid">'+[['Site score',A.score+'/100'],['Mobile speed',P.score!=null?P.score+'/100':'n/a'],['Server response',A.ttfb+' ms'],['Third-party domains',A.thirdParty]].map(k=>'<div class="c"><div class="mu">'+k[0]+'</div><div class="k">'+k[1]+'</div></div>').join('')+'</div>';
+ h+='<div class="c"><h3>Likely reasons guests leave</h3>'+(A.findings.length?'':'<div class="mu">No issues found by these checks.</div>')+A.findings.map(f=>'<div style="padding:10px 0;border-top:1px solid var(--bd)"><span class="tag '+f.sev+'">'+f.sev+'</span> <b>'+esc(f.t)+'</b><div class="mu">'+esc(f.e)+'</div><div>Fix: '+esc(f.f)+'</div></div>').join('')+'</div>';
+ h+='<div class="c mu">Booking engine detected: '+esc(A.engine||'none visible')+' · Tools detected: '+esc(A.tools.join(', ')||'none')+(P.error?' · '+esc(P.error):'')+'<br>'+esc(A.note)+'</div>';$('ao').innerHTML=h};
+function snip(){$('sn').value='<script async src="'+location.origin+'/tracker.js" data-site="'+($('site').value||'yourhotel.com')+'"><\/script>'}
+$('site').oninput=snip;
+fetch(q('/api/sites')).then(r=>r.json()).then(s=>{$('sl').innerHTML=s.map(x=>'<option>'+esc(x)+'</option>').join('');if(s[0]){$('site').value=s[0];snip()}else snip()});
+$('go').onclick=run;$('ex').onclick=()=>location.href=q('/api/export?site='+encodeURIComponent($('site').value)+'&days='+$('days').value);
+$('sv').onclick=async()=>{const b={site:$('ns').value,adr:$('na').value,nights:$('nn').value},st={};if($('ps').value)st.payment=$('ps').value;if($('cs').value)st.confirmed=$('cs').value;if(Object.keys(st).length)b.steps=st;
+ const r=await (await fetch(q('/api/site'),{method:'POST',body:JSON.stringify(b)})).json();$('sm').textContent=r.ok?'Saved '+r.site:r.error;if(r.ok){$('site').value=r.site;snip()}};
+async function run(){snip();const A=await (await fetch(q('/api/summary?site='+encodeURIComponent($('site').value)+'&days='+$('days').value))).json(),o=$('out');
+ if(!A.N){o.innerHTML='<div class="c mu">No visits recorded for this site yet. Install the snippet, browse the site, then press Analyze.</div>';return}
+ const mx=A.fun[0]||1,pc=x=>(x*100).toFixed(1)+'%';
+ let h='<div class="grid">'+[['Sessions',A.N],['Live now',A.live],['Conversion',pc(A.conv)],['Bounce',(A.bounce*100).toFixed(0)+'%'],['Avg load',A.load==null?'n/a':A.load.toFixed(1)+'s']].map(k=>'<div class="c"><div class="mu">'+k[0]+'</div><div class="k">'+k[1]+'</div></div>').join('')+'</div>';
+ A.warn.forEach(w=>h+='<div class="c" style="border-color:var(--bad)">'+esc(w)+'</div>');
+ const dm=Math.max(...A.daily.map(d=>d[1].s),1);h+='<div class="c"><h3>Sessions per day</h3><div class="spark">'+A.daily.map(d=>'<div title="'+d[0]+': '+d[1].s+' sessions, '+d[1].b+' bookings" style="height:'+Math.max(4,70*d[1].s/dm)+'px"></div>').join('')+'</div></div>';
+ h+='<div class="c"><h3>Booking funnel</h3>'+A.names.map((s,k)=>'<div>'+s+' <span class="mu">'+A.fun[k]+' · '+(100*A.fun[k]/mx).toFixed(0)+'%'+(k<5?' · '+A.exits[k]+' left here':'')+'</span></div><div class="bar"><i style="width:'+100*A.fun[k]/mx+'%"></i></div>').join('')+'</div>';
+ h+='<div class="c"><h3>Why the hotel is losing clients</h3>'+(A.issues.length?'':'<div class="mu">No significant problems detected yet. Collect more sessions.</div>');const top=A.issues[0]?A.issues[0].n:1;
+ A.issues.forEach((i,k)=>h+='<div style="margin:12px 0;'+(k?'border-top:1px solid var(--bd);padding-top:12px':'')+'"><b>'+(k+1)+'. '+esc(i.t)+'</b> <span class="tag high">~'+Math.round(i.n)+' lost</span>'+(A.value?' <span class="mu">≈ $'+Math.round(i.n*.3*A.value).toLocaleString()+' recoverable at 30%</span>':'')+'<div class="bar r"><i style="width:'+100*i.n/top+'%"></i></div><div class="mu">Evidence: '+esc(i.e)+'</div><div>Fix: '+esc(i.f)+'</div></div>');
+ h+='<div class="mu">Counts are estimates and may overlap between causes.</div></div><div class="cols"><div class="c"><h3>Where guests leave</h3><table>'+A.exitPages.map(p=>'<tr><td>'+esc(p[0])+'</td><td>'+p[1]+'</td></tr>').join('')+'</table></div>'
+ +'<div class="c"><h3>Traffic sources</h3><table><tr><th>Source</th><th>Visits</th><th>Conv.</th></tr>'+A.sources.map(s=>'<tr><td>'+esc(s[0])+'</td><td>'+s[1]+'</td><td>'+pc(s[2])+'</td></tr>').join('')+'</table><div class="mu" style="margin-top:6px">Mobile: '+A.devices.mobile[0]+' visits, '+pc(A.devices.mobile[1])+' · Desktop: '+A.devices.desktop[0]+', '+pc(A.devices.desktop[1])+'</div></div></div>';o.innerHTML=h}
+</script></body></html>
