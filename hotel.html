@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aurelia Hill Retreat</title>
+<link href="https://fonts.googleapis.com/css2?family=Young+Serif&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--pine:#15332c;--pine2:#23493f;--brass:#a97f2e;--stone:#eef1ec;--ink:#16231f;--mist:#d5dcd4;--bad:#b4432a}
+*{box-sizing:border-box}body{margin:0;background:var(--stone);color:var(--ink);font:16px/1.55 Figtree,system-ui,sans-serif}
+h1,h2,h3{font-family:'Young Serif',Georgia,serif;font-weight:400;margin:0}
+a{color:inherit}button{font:inherit;cursor:pointer}button:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--brass);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:center;padding:16px 5vw;background:var(--pine);color:#fff}
+.top b{font:400 22px 'Young Serif',serif}.top span{opacity:.75;font-size:14px}
+.hero{background:var(--pine);color:#fff;padding:56px 5vw 0;position:relative;overflow:hidden}
+.hero h1{font-size:clamp(34px,6vw,60px);max-width:14ch;line-height:1.08}.hero p{max-width:44ch;opacity:.85;margin:14px 0 28px}
+.hero svg{display:block;width:100%;height:auto;margin-top:-30px;pointer-events:none}
+.search{display:flex;flex-wrap:wrap;gap:12px;align-items:end;background:var(--stone);color:var(--ink);padding:16px;border-radius:12px;max-width:720px;position:relative;z-index:2}
+.search label,.f label{display:flex;flex-direction:column;font-size:13px;gap:3px;color:#4a5a53;flex:1;min-width:120px}
+input,select{font:inherit;padding:10px;border:1px solid #b9c4bb;border-radius:8px;background:#fff}
+.btn{background:var(--pine);color:#fff;border:0;border-radius:8px;padding:12px 20px;font-weight:600}.btn:hover{background:var(--pine2)}
+.btn.brass{background:var(--brass)}.btn.ghost{background:none;color:var(--ink);border:1px solid #9fb0a5}
+main,.wrap{max-width:980px;margin:0 auto;padding:36px 5vw}
+.rooms{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin-top:18px}
+.room{background:#fff;border-radius:12px;overflow:hidden;border:1px solid var(--mist);display:flex;flex-direction:column}
+.room i{height:120px;display:block}.room div{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.room .p{font:400 24px 'Young Serif',serif}.room small{color:#5b6b64}.room .btn{margin-top:auto}
+.card{background:#fff;border:1px solid var(--mist);border-radius:12px;padding:22px;margin-top:16px}
+.row{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid var(--mist)}
+details{margin:12px 0}summary{cursor:pointer;font-weight:600}
+.f{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin:14px 0}
+.err{color:var(--bad);font-weight:600;margin:8px 0}
+.strike{text-decoration:line-through;color:#7a8a83}.save{color:#2f7a3d;font-weight:600}
+#consent{position:fixed;left:0;right:0;bottom:0;background:var(--ink);color:#fff;padding:14px 5vw;display:flex;gap:14px;flex-wrap:wrap;align-items:center;z-index:30;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+#consent p{margin:0;flex:1;min-width:240px;font-size:14px}
+#modal{position:fixed;inset:0;background:rgba(10,20,16,.6);display:grid;place-items:center;z-index:40;padding:16px}
+#modal .box{background:#fff;border-top:6px solid var(--brass);border-radius:12px;padding:26px;max-width:440px}
+#dev{position:fixed;right:12px;top:12px;width:300px;max-width:calc(100vw - 24px);background:#fff;border:1px solid #9fb0a5;border-radius:10px;font-size:13px;z-index:20;box-shadow:0 4px 18px rgba(0,0,0,.15)}
+#dev summary{padding:8px 12px}#dev .in{padding:0 12px 12px}#dev ol{margin:6px 0;padding-left:18px;max-height:110px;overflow:auto}
+#dev pre{white-space:pre-wrap;margin:6px 0;background:var(--stone);padding:8px;border-radius:6px;font:12px/1.4 ui-monospace,monospace}
+#dev button{font-size:12px;padding:5px 8px;margin:2px 2px 0 0;border:1px solid #9fb0a5;background:#fff;border-radius:6px}
+[hidden]{display:none!important}
+@media (prefers-reduced-motion:no-preference){#modal .box{animation:up .25s ease-out}@keyframes up{from{transform:translateY(14px);opacity:0}}}
+</style></head><body>
+<div class="top"><b>Aurelia Hill Retreat</b><span>Boutique hotel · 120 rooms · Book direct</span></div>
+
+<div id="home">
+<section class="hero"><h1>Wake up above the valley.</h1><p>Slow mornings, wood fires and rooms that face the ridge. Book direct for the best rates.</p>
+<div class="search"><label>Check-in<input type="date" id="ci"></label><label>Nights<select id="nt"><option>1</option><option selected>2</option><option>3</option></select></label><label>Guests<select><option>1</option><option selected>2</option><option>3</option></select></label><button class="btn brass" id="go">Check availability</button></div>
+<svg viewBox="0 0 1200 160" preserveAspectRatio="none" aria-hidden="true"><path d="M0 120 L140 50 L260 110 L420 30 L560 105 L700 45 L860 115 L1020 40 L1200 100 V160 H0Z" fill="#23493f"/><path d="M0 145 L180 90 L330 135 L520 80 L700 140 L900 85 L1200 140 V160 H0Z" fill="#eef1ec"/></svg></section>
+<main id="rooms"><h2>Rooms</h2><div class="rooms" id="rl"></div><p class="mut" style="color:#5b6b64;font-size:14px;margin-top:20px">Demo site. Prices and rooms are fictional.</p></main>
+</div>
+
+<main id="detail" hidden><button class="btn ghost" id="b1">Back to rooms</button><div class="card" id="dc"></div></main>
+<main id="checkout" hidden><button class="btn ghost" id="b2">Back to room</button><div class="card" id="cc"></div></main>
+<main id="done" hidden><div class="card" id="dn"></div></main>
+
+<div id="consent"><p>We use analytics on this site to understand booking behavior and offer relevant rates. You can decline and still book.</p><button class="btn brass" id="yes">Accept</button><button class="btn ghost" id="no" style="color:#fff;border-color:#8da095">Decline</button></div>
+<div id="modal" hidden></div>
+
+<details id="dev"><summary>GhostDemand live view</summary><div class="in">
+<div>Consent: <b id="cs">not asked</b></div><ol id="log"></ol>
+<button id="d1">Simulate leaving (exit intent)</button><button id="d2">Simulate other tab</button><button id="d3">Reset demo</button>
+<pre id="sc">Reach checkout, then move the mouse out of the top of the window, or press the leave button.</pre></div></details>
+
+<script>
+// Same origin when served by FastAPI at /hotel; falls back to local backend if opened as a file.
+const API=location.protocol.startsWith('http')?'':'http://127.0.0.1:8000';
+const $=s=>document.querySelector(s),inr=n=>'₹'+Math.round(n).toLocaleString('en-IN');
+const ROOMS=[{id:'garden',n:'Garden Room',p:6500,d:'Ground floor, opens onto the orchard.',c:'#7fa08a'},
+ {id:'deluxe',n:'Deluxe King',p:8500,d:'Valley view, king bed, soaking tub.',c:'#4f7a6a'},
+ {id:'suite',n:'Premier Suite',p:12000,d:'Two rooms, wood fire, private terrace.',c:'#2d5547'}];
+let sid=crypto.randomUUID(),consent=null,st;
+function fresh(){st={room:null,nights:2,disc:0,flex:false,checkout:false,offered:false,booked:false};sid=crypto.randomUUID();$('#log').innerHTML='';$('#sc').textContent='Reach checkout, then move the mouse out of the top of the window, or press the leave button.'}
+fresh();
+const d=new Date();d.setDate(d.getDate()+14);$('#ci').value=d.toISOString().slice(0,10);
+const show=id=>{['home','detail','checkout','done'].forEach(x=>$('#'+x).hidden=x!==id);scrollTo(0,0)};
+const price=()=>st.room.p-st.disc;
+function log(t,sent){const li=document.createElement('li');li.textContent=t+(sent?'':' (not sent)');$('#log').append(li);li.scrollIntoView({block:'nearest'})}
+async function ev(type){const sent=consent===true;log(type,sent);if(!sent)return;
+ try{await fetch(API+'/events',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:sid,type,nights:st.nights,consent:true})})}catch(e){$('#sc').textContent='Backend not reachable. Start it with: uvicorn app:app --reload, then open /hotel'}}
+$('#yes').onclick=()=>{consent=true;$('#consent').hidden=true;$('#cs').textContent='accepted'};
+$('#no').onclick=()=>{consent=false;$('#consent').hidden=true;$('#cs').textContent='declined, nothing is sent'};
+$('#rl').innerHTML=ROOMS.map((r,i)=>`<div class="room"><i style="background:linear-gradient(160deg,${r.c},#15332c)"></i><div><h3>${r.n}</h3><small>${r.d}</small><span class="p">${inr(r.p)}<small> / night</small></span><button class="btn" data-i="${i}">View rates</button></div></div>`).join('');
+$('#rl').onclick=e=>{const b=e.target.closest('[data-i]');if(b){st.room=ROOMS[b.dataset.i];st.disc=0;st.flex=false;st.offered=false;st.checkout=false;detail();ev('rate')}};
+$('#go').onclick=()=>{st.nights=+$('#nt').value;ev('search');$('#rooms').scrollIntoView({behavior:'smooth'})};
+const policy=()=>st.flex?'Free cancellation up to 24 hours before arrival.':'Free cancellation until 14 days before arrival. After that the first night is charged. Within 3 days the full stay is non-refundable.';
+function detail(){st.nights=+$('#nt').value;show('detail');
+ $('#dc').innerHTML=`<h2>${st.room.n}</h2><p>${st.room.d}</p><div class="row"><span>Rate per night</span><b>${st.disc?`<span class="strike">${inr(st.room.p)}</span> `:''}${inr(price())}</b></div>
+ <div class="row"><span>${st.nights} night${st.nights>1?'s':''}, taxes included</span><b>${inr(price()*st.nights)}</b></div>
+ <button class="btn ghost" id="pb" style="margin-top:12px">Show price breakdown</button>
+ <details id="pol"><summary>Cancellation policy</summary><p>${policy()}</p></details>
+ <button class="btn brass" id="co">Continue to checkout</button>`;
+ $('#pb').onclick=()=>{ev('rate');$('#pb').insertAdjacentHTML('afterend',`<p>Room ${inr(price()*st.nights*.82)} + service and taxes ${inr(price()*st.nights*.18)}</p>`);$('#pb').remove()};
+ $('#pol').ontoggle=e=>{if(e.target.open)ev('policy')};
+ $('#co').onclick=()=>{st.checkout=true;ev('checkout');checkout()}}
+function checkout(){show('checkout');
+ $('#cc').innerHTML=`<h2>Your stay</h2><div class="row"><span>${st.room.n}, ${st.nights} night${st.nights>1?'s':''}</span><b>${inr(price()*st.nights)}</b></div>
+ ${st.disc?`<div class="save">Direct offer applied: ${inr(st.disc)} off per night</div>`:''}${st.flex?'<div class="save">Free flexible cancellation included</div>':''}
+ <div class="f"><label>Full name<input></label><label>Email<input type="email"></label><label>Card number<input id="cn" inputmode="numeric" placeholder="4111 1111 1111 1111"></label><label>Expiry<input placeholder="MM/YY"></label></div>
+ <div class="err" id="er" hidden></div><button class="btn brass" id="pay">Pay ${inr(price()*st.nights)} and confirm</button>`;
+ $('#pay').onclick=()=>{if($('#cn').value.replace(/\s/g,'').length<8){$('#er').hidden=false;$('#er').textContent='Payment failed. Enter a valid card number.';ev('error');return}
+  st.booked=true;ev('book');show('done');$('#dn').innerHTML=`<h2>Booking confirmed</h2><p>${st.room.n}, ${st.nights} night${st.nights>1?'s':''}. Total ${inr(price()*st.nights)}.</p><p>${policy()}</p><button class="btn" id="again">Start over</button>`;$('#again').onclick=()=>{fresh();show('home')}}}
+$('#b1').onclick=()=>show('home');$('#b2').onclick=detail;
+// exit intent: mouse leaves through the top of the window
+document.addEventListener('mouseout',e=>{if(!e.relatedTarget&&e.clientY<=0)exitIntent()});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&st.checkout)ev('other_tab')});
+async function exitIntent(force){
+ if(consent!==true){if(force)$('#sc').textContent='No consent, so nothing was tracked and no offer can be made.';return}
+ if(!st.checkout||st.booked||(st.offered&&!force)||!$('#modal').hidden)return;
+ st.offered=true;await ev('leave');
+ try{const r=await fetch(API+'/score/'+sid);if(!r.ok)throw 0;const j=await r.json();
+  $('#sc').textContent='Likely reason: '+j.reasons[0].reason+' ('+Math.round(j.reasons[0].probability*100)+'%)\n'+j.offers.map(o=>o.offer+': '+Math.round(o.expected_profit)).join('\n')+'\n'+(j.show_popup?'Popup: '+j.recommended.offer:'No popup: keep the rate');
+  if(j.show_popup&&st.room.id==='deluxe')popup(j.recommended)}catch(e){$('#sc').textContent='Could not reach the scoring API.'}}
+function popup(o){const txt=o.discount?`Book direct now and save ${inr(o.discount)} per night.`:'Book direct now and get free flexible cancellation.';
+ $('#modal').hidden=false;$('#modal').innerHTML=`<div class="box" role="dialog" aria-modal="true"><h2>Before you go</h2><p>${txt}</p><button class="btn brass" id="ok">Apply offer</button> <button class="btn ghost" id="ko">No thanks</button></div>`;
+ $('#ok').onclick=()=>{st.disc=o.discount;st.flex=!!o.flex;$('#modal').hidden=true;checkout()};$('#ko').onclick=()=>$('#modal').hidden=true}
+$('#d1').onclick=()=>exitIntent(true);$('#d2').onclick=()=>ev('other_tab');$('#d3').onclick=()=>{fresh();$('#modal').hidden=true;show('home')};
+</script></body></html>
